@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+# 啟動一個「計費可切換」的 Claude Code：模型請求先經過本機代理，
+# 由代理決定用訂閱憑證或 API 金鑰池送出。不修改任何 settings；
+# 平常直接執行 claude 的 session 不受影響。
+set -euo pipefail
+
+SELF="${BASH_SOURCE[0]}"
+while [ -L "$SELF" ]; do
+  LINK="$(readlink "$SELF")"
+  case "$LINK" in /*) SELF="$LINK" ;; *) SELF="$(dirname "$SELF")/$LINK" ;; esac
+done
+ROOT="$(cd "$(dirname "$SELF")/.." && pwd)"
+PORT="${SDK_ROUTE_PORT:-48730}"
+DATA="$HOME/.claude/sdk-route"
+PING="http://127.0.0.1:$PORT/__sdk-route/ping"
+mkdir -p "$DATA"
+
+if ! curl -fs --max-time 1 "$PING" >/dev/null 2>&1; then
+  SDK_ROUTE_PORT="$PORT" nohup node "$ROOT/proxy/server.mjs" >>"$DATA/proxy.log" 2>&1 &
+  for _ in 1 2 3 4 5 6 7 8 9 10; do
+    curl -fs --max-time 1 "$PING" >/dev/null 2>&1 && break
+    sleep 0.3
+  done
+  if ! curl -fs --max-time 1 "$PING" >/dev/null 2>&1; then
+    echo "sdk-route：代理啟動失敗，請看 $DATA/proxy.log。改用一般的 claude 即可照常使用訂閱。" >&2
+    exit 1
+  fi
+fi
+
+PROJECT="$(node -e 'process.stdout.write(Buffer.from(process.cwd()).toString("base64url"))')"
+# 已正式安裝就不再用 --plugin-dir 重複載入。
+if grep -q '"sdk-route@' "$HOME/.claude/plugins/installed_plugins.json" 2>/dev/null; then
+  exec env ANTHROPIC_BASE_URL="http://127.0.0.1:$PORT/p/$PROJECT" SDK_ROUTE_PROXY="$PORT" claude "$@"
+fi
+exec env ANTHROPIC_BASE_URL="http://127.0.0.1:$PORT/p/$PROJECT" SDK_ROUTE_PROXY="$PORT" claude --plugin-dir "$ROOT" "$@"

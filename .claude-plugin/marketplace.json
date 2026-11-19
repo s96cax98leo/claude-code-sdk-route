@@ -1,0 +1,13 @@
+{
+  "name": "sdk-route",
+  "owner": {
+    "name": "s96cax98leo"
+  },
+  "plugins": [
+    {
+      "name": "sdk-route",
+      "source": "./",
+      "description": "在 Claude Code 上改用 API 金鑰池：獨立的 API session（pane）與原視窗的計費切換"
+    }
+  ]
+}

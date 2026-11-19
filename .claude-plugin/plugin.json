@@ -1,0 +1,23 @@
+{
+  "name": "sdk-route",
+  "version": "0.9.0",
+  "description": "在側邊 pane 開一個由 Agent SDK 驅動、只用 API 金鑰池計費的獨立 Claude Code 主 session",
+  "license": "MIT",
+  "types": "./types/index.d.ts",
+  "userConfig": {
+    "defaultModel": {
+      "type": "string",
+      "title": "預設模型",
+      "description": "API session 預設使用的模型（例如 sonnet、haiku、opus、fable）。留空則用 Claude Code 的預設模型。/sdk-route open <模型> 可單次覆寫。",
+      "required": false,
+      "default": "sonnet"
+    },
+    "dailyBudgetUsd": {
+      "type": "number",
+      "title": "每日預算（USD）",
+      "description": "所有 API session 一天合計的花費上限（以帳本計，UTC 日）。到 50%、75%、90% 會提醒，達到上限時該輪中止。0 表示不設上限。",
+      "required": false,
+      "default": 0
+    }
+  }
+}

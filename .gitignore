@@ -1,0 +1,16 @@
+# 相依套件：安裝後第一次使用時由 mod 自動執行 npm ci
+node_modules/
+
+# 金鑰與任何環境檔一律不進版控（金鑰放在專案的 .claude/sdk-route.env 或 ~/.claude/sdk-route.env）
+*.env
+.env*
+!sdk-route.env.example
+.claude/
+
+# 產生物與本機資料
+hooks/*.js
+.codegraph/
+graft/
+*.log
+*.jsonl
+.DS_Store
